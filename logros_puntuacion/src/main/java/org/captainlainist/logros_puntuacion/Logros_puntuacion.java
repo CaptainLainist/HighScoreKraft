@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -105,7 +106,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
                 Player player = (Player) sender;
                 String name = player.getName();
                 int points = playerPoints.getOrDefault(name, 0);
-                player.sendMessage("Tus puntos: " + points);
+                player.sendMessage("Tus puntos: " + ChatColor.YELLOW + points);
             } else {
                 sender.sendMessage("Este comando solo puede ser usado por jugadores.");
             }
@@ -148,8 +149,21 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
             playerPoints.put(targetPlayer.getName(), puntosTotales);
 
-            sender.sendMessage("Puntos añadidos al usuario " + targetPlayer.getName() + ": " + pointsToAdd + ". Puntos Totales: " + puntosTotales);
+            if (pointsToAdd >= 0) {
+                sender.sendMessage("Puntos añadidos al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd + ChatColor.WHITE + ". Puntos Totales: " + ChatColor.YELLOW + puntosTotales);
+            } else {
+                int puntosPos = pointsToAdd * -1;
+                sender.sendMessage("Puntos quitados del usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.RED + puntosPos + ChatColor.WHITE + ". Puntos Totales: " + ChatColor.YELLOW + puntosTotales);
+            }
+            if (pointsToAdd > 0) {
+                targetPlayer.sendMessage(ChatColor.GREEN + "Puntos añadidos al usuario " + targetPlayer.getName() + ": " + pointsToAdd + ". Puntos Totales: " + puntosTotales);
+            }  else if (pointsToAdd < 0){
+                int puntosPos = pointsToAdd * -1;
+                targetPlayer.sendMessage(ChatColor.RED + "Puntos quitados del usuario " + targetPlayer.getName() + ": " + puntosPos + ". Puntos Totales: " + puntosTotales);
+            } else {
+                targetPlayer.sendMessage("Puntos añadidos al usuario " + targetPlayer.getName() + ": " + pointsToAdd + ". Puntos Totales: " + puntosTotales);
 
+            }
             savePoints();
 
             return true;
@@ -186,11 +200,18 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             return true;
         }
 
+        int puntosAnteriores = playerPoints.getOrDefault(targetPlayer.getName(), 0);
 
         playerPoints.put(targetPlayer.getName(), pointsToAdd);
 
 
-        sender.sendMessage("Puntos aplicados al usuario " + targetPlayer.getName() + ": " + pointsToAdd);
+        sender.sendMessage("Puntos aplicados al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd);
+
+        if (puntosAnteriores < pointsToAdd) {
+            targetPlayer.sendMessage(ChatColor.GREEN + "Puntos aplicados al usuario " + targetPlayer.getName() + ": " + pointsToAdd);
+        } else if (puntosAnteriores > pointsToAdd){
+            targetPlayer.sendMessage(ChatColor.RED + "Puntos aplicados al usuario " + targetPlayer.getName() + ": " + pointsToAdd);
+        }
 
         savePoints();
 
@@ -352,7 +373,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
                 break;
         }
         if (sum_points != 0) {
-            player.sendMessage("+" + sum_points + " puntos!");
+            player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " puntos!");
 
             //aplica y guarda los puntos
             int newPoints = playerPoints.getOrDefault(player.getName(), 0) + sum_points;
@@ -437,7 +458,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
                 savePoints();
 
-                player.sendMessage("Has conseguido un logro! [" + remodelateAchievement(advancementName) + "] por " + sum_points + " puntos, Puntos Totales : " + newPoints);
+                player.sendMessage("Has conseguido un logro! [" + ChatColor.AQUA + remodelateAchievement(advancementName) + ChatColor.WHITE + "] por " + ChatColor.YELLOW + sum_points + ChatColor.WHITE + " puntos, Puntos Totales : " + ChatColor.YELLOW + newPoints + ChatColor.WHITE);
             }
 
         }
