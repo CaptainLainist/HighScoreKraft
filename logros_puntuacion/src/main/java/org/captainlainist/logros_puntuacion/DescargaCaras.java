@@ -70,7 +70,7 @@ public class DescargaCaras {
 
     public void descargarCara(Player player){
 
-        String path = "server_web/static/caras_skins/" + player.getName() + ".png";
+        String path = "server_web/static/caras_skins/" + player.getName() + "-" + player.getUniqueId() + ".png";
 
         //crear carpeta de caras
         File carpeta = new File("server_web/static/caras_skins");

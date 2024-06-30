@@ -7,7 +7,7 @@ app = Flask(__name__, static_url_path='/static')
 def cargar_datos():
     with open('../plugins/logros_puntuacion/points.yml', 'r') as archivo:
         datos = yaml.safe_load(archivo)
-    lista_datos = [{"skin": "caras_skins/" + clave[:-37] + ".png", "nombre": clave[:-37], "puntuacion": valor} for clave, valor in datos.items()]
+    lista_datos = [{"skin": "caras_skins/" + clave + ".png", "nombre": clave[:-37], "puntuacion": valor} for clave, valor in datos.items()]
     
     lista_datos.sort(key=lambda x: x['puntuacion'], reverse=True)
 
