@@ -1,11 +1,14 @@
 package org.captainlainist.logros_puntuacion;
 
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -20,38 +23,26 @@ import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.Material;
 import org.bukkit.event.block.BlockBreakEvent;
-
+import org.bukkit.entity.EntityType;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.block.BlockPlaceEvent;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.*;
 import java.io.IOException;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.logging.Level;
+
 import org.bukkit.event.player.PlayerPickupItemEvent;
 public final class Logros_puntuacion extends JavaPlugin implements Listener, CommandExecutor {
 
+    Blocks blocks = new Blocks();
 
-    //Set para saber que bloques son virgenes i cuales no (guarda los no virgenes)
-    private final Set<String> placedBlocks = new HashSet<>();
 
-    //guarda los bloques no virgenes puestos en el set
-    @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) {
-        String blockLocation = event.getBlock().getLocation().toString();
-        placedBlocks.add(blockLocation);
-    }
+    Enemies enemies = new Enemies();
 
-    //si el bloque no es virgen
-    public boolean isBlockPlaced(String blockLocation) {
-        return placedBlocks.contains(blockLocation);
-    }
+    Achievements logros = new Achievements();
 
-    //borrar bloque del set
-    public void removeBlock(String blockLocation) {
-        placedBlocks.remove(blockLocation);
-    }
+
 
     //Mapa con los usuarios (por nombre) y sus puntos
     private Map<String, Integer> playerPoints = new HashMap<>();
@@ -60,24 +51,71 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     private File pointsFile;
     private FileConfiguration pointsConfig;
 
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        blocks.blockPlaced(event);
+    }
+    @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        enemies.creatureSpawn(event);
+    }
+
+
 
     //al encenderse el plugin
     @Override
     public void onEnable() {
-        // Plugin startup logic
+
+
+
+        //comandos
         getServer().getPluginManager().registerEvents(this, this);
         getCommand("puntos").setExecutor(this);
         this.getCommand("darpuntos").setExecutor(this);
         this.getCommand("setpuntos").setExecutor(this);
-        getLogger().info("Puntuacion_logros se ha habilitado");
+
+
+        blocks.createFile(getDataFolder());
+
+        enemies.createFile(getDataFolder());
+
+        getLogger().info("Logros_Puntuacion se ha habilitado");
 
     }
 
     //al desactivarse
     @Override
     public void onDisable() {
-        getLogger().info("Puntuacion_logros se ha deshabilitado");
+        blocks.savePlacedBlocks();
+        enemies.saveSpawnerEntities();
+        getLogger().info("Logros_Puntuacion se ha deshabilitado");
     }
+
+
+    //obtener puntos por enemigo
+
+
+    //sumar puntos al matar mobs
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+
+        if (event.getEntity().getKiller() instanceof Player) {
+            if (enemies.isFromSpawner(event.getEntity())) {
+                return;
+            }
+
+            Player player = event.getEntity().getKiller();
+            int sum_points = enemies.entityDeath(event);
+
+            int newPoints = playerPoints.getOrDefault(player.getName() + "-" + player.getUniqueId(), 0) + sum_points;
+            playerPoints.put(player.getName() + "-" + player.getUniqueId(), newPoints);
+            if (sum_points != 0) {
+                player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " puntos por ese " + ChatColor.AQUA + event.getEntity().getName());
+            }
+            savePoints();
+        }
+    }
+
 
 
     //cuando el jugador se une
@@ -86,13 +124,29 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         Player player = event.getPlayer();
 
         String name = player.getName();
-        // inicializa los puntos a 75 de todos los jugadores
-        playerPoints.putIfAbsent(name, 75);
 
-        //crea el archivo "points.yml" o lo carga (es donde se guardan los puntos de los usuarios)
-        pointsFile = new File(JavaPlugin.getPlugin(Logros_puntuacion.class).getDataFolder(), "points.yml");
+        String completeName = name + "-" + player.getUniqueId();
+        // inicializa los puntos a 75 de todos los jugadores
+        playerPoints.putIfAbsent(completeName, 75);
+
+
+        //crear y cargar archivo de puntos
+        pointsFile = new File(getDataFolder(), "points.yml");
+        if (!pointsFile.exists()) {
+            pointsFile.getParentFile().mkdirs();
+            try {
+                pointsFile.createNewFile();
+                getLogger().info("Archivo de puntos creado correctamente");
+            } catch (IOException e) {
+
+                getLogger().info("ERROR: Archivo de puntos no se pudo crear");
+                e.printStackTrace();
+            }
+        }
+
         pointsConfig = YamlConfiguration.loadConfiguration(pointsFile);
         loadPoints();
+
     }
 
 
@@ -105,7 +159,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 String name = player.getName();
-                int points = playerPoints.getOrDefault(name, 0);
+                int points = playerPoints.getOrDefault(name + "-" + player.getUniqueId(), 0);
                 player.sendMessage("Tus puntos: " + ChatColor.YELLOW + points);
             } else {
                 sender.sendMessage("Este comando solo puede ser usado por jugadores.");
@@ -143,11 +197,11 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
                 return true;
             }
 
-            int puntosOG = playerPoints.getOrDefault(targetPlayer.getName(), 0);
+            int puntosOG = playerPoints.getOrDefault(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), 0);
 
             int puntosTotales = puntosOG + pointsToAdd;
 
-            playerPoints.put(targetPlayer.getName(), puntosTotales);
+            playerPoints.put(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), puntosTotales);
 
             if (pointsToAdd >= 0) {
                 sender.sendMessage("Puntos añadidos al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd + ChatColor.WHITE + ". Puntos Totales: " + ChatColor.YELLOW + puntosTotales);
@@ -200,9 +254,9 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             return true;
         }
 
-        int puntosAnteriores = playerPoints.getOrDefault(targetPlayer.getName(), 0);
+        int puntosAnteriores = playerPoints.getOrDefault(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), 0);
 
-        playerPoints.put(targetPlayer.getName(), pointsToAdd);
+        playerPoints.put(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), pointsToAdd);
 
 
         sender.sendMessage("Puntos aplicados al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd);
@@ -224,82 +278,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
 
     //obtener que puntos deberia sumar dependiendo del achievement
-    private int getSumPoints(String achievement) {
-        int points;
 
-        switch (achievement) {
-            case "story/upgrade_tools":
-            case "story/smelt_iron":
-            case "story/iron_tools":
-                points = 40;
-                break;
-
-            case "story/obtain_armor":
-            case "story/mine_diamond":
-            case "nether/obtain_ancient_debris":
-            case "nether/fast_travel":
-            case "nether/ride_strider":
-                points = 50;
-                break;
-
-            case "story/lava_bucket":
-            case "story/follow_ender_eye":
-            case "nether/distract_piglin":
-            case "nether/brew_potion":
-                points = 60;
-                break;
-
-            case "story/deflect_arrow":
-            case "story/form_obsidian":
-            case "story/shiny_gear":
-            case "story/enchant_item":
-            case "nether/obtain_crying_obsidian":
-            case "nether/netherite_armor":
-                points = 80;
-                break;
-
-            case "nether/get_wither_skull":
-                points = 90;
-                break;
-
-            case "story/cure_zombie_villager":
-            case "story/enter_the_end":
-            case "nether/summon_wither":
-                points = 100;
-                break;
-
-            case "end/kill_dragon":
-            case "end/dragon_egg":
-            case "end/enter_end_gateway":
-            case "end/respawn_dragon":
-                points = 150;
-                break;
-
-            case "adventure/voluntary_exile":
-            case "adventure/kill_all_mobs":
-            case "adventure/adventuring_time":
-            case "adventure/hero_of_the_village":
-                points = 120;
-                break;
-
-            case "husbandry/bred_all_animals":
-            case "husbandry/complete_catalogue":
-            case "husbandry/balanced_diet":
-                points = 100;
-                break;
-
-            case "nether/all_potions":
-            case "nether/all_effects":
-                points = 200;
-                break;
-
-            default:
-                points = 30;
-                break;
-        }
-
-        return points;
-    }
 
     //cargar puntos del archivo
     private void loadPoints() {
@@ -310,82 +289,6 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             }
         }
     }
-
-    //cuano se rompe un bloque
-    @EventHandler
-    public void onBlockBreak(BlockBreakEvent event) {
-
-        String blockLocation = event.getBlock().getLocation().toString();
-
-        Player player = event.getPlayer();
-
-        //si no es virgen se anula
-        if (isBlockPlaced(blockLocation)){
-            return;
-        }
-
-        Material blockType = event.getBlock().getType();
-
-        int sum_points;
-        //dependiendo del material dara mas o menos puntos
-        switch (blockType) {
-            case COAL_ORE:
-            case DEEPSLATE_COAL_ORE:
-                sum_points = 2;
-                break;
-            case COPPER_ORE:
-            case DEEPSLATE_COPPER_ORE:
-                sum_points = 10;
-                break;
-            case IRON_ORE:
-            case DEEPSLATE_IRON_ORE:
-                sum_points = 5;
-                break;
-            case GOLD_ORE:
-            case DEEPSLATE_GOLD_ORE:
-                sum_points = 15;
-                break;
-            case LAPIS_ORE:
-            case DEEPSLATE_LAPIS_ORE:
-                sum_points = 7;
-                break;
-            case REDSTONE_ORE:
-            case DEEPSLATE_REDSTONE_ORE:
-                sum_points = 8;
-                break;
-            case EMERALD_ORE:
-            case DEEPSLATE_EMERALD_ORE:
-                sum_points = 20;
-                break;
-            case DIAMOND_ORE:
-            case DEEPSLATE_DIAMOND_ORE:
-                sum_points = 30;
-                break;
-            case NETHER_GOLD_ORE:
-            case NETHER_QUARTZ_ORE:
-                sum_points = 12;
-                break;
-            case ANCIENT_DEBRIS:
-                sum_points = 50;
-                break;
-            default:
-                sum_points = 0;
-                break;
-        }
-        if (sum_points != 0) {
-            player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " puntos!");
-
-            //aplica y guarda los puntos
-            int newPoints = playerPoints.getOrDefault(player.getName(), 0) + sum_points;
-            playerPoints.put(player.getName(), newPoints);
-
-            savePoints();
-
-        }
-    }
-
-
-
 
     //guarda los puntos en el archivo
     private void savePoints() {
@@ -399,67 +302,49 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         }
     }
 
+    //cuano se rompe un bloque
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
 
-    //cambia la string del achievement por algo mas leible "minecraft/hacer_una_cosa" -> "Hacer Una Cosa"
-    public String remodelateAchievement(String cadena){
+        String blockLocation = event.getBlock().getLocation().toString();
 
-        String cadena_2 = "";
-        String cadena_3 = "";
-        int puntoCortar = 0;
-        //detecta la posicion de "/"
-        for (int i = 0; i < cadena.length(); i++){
-            if (cadena.charAt(i) == '/'){
-                puntoCortar = i;
-                break;
-            }
+        //si no es virgen se anula
+        if (blocks.isBlockPlaced(blockLocation)) {
+            return;
         }
+        int sum_points = blocks.blockBreak(event);
 
-        //corta por esa posicion y de paso intercambia todos los "_" por espacios
-        cadena_2 = cadena.substring(puntoCortar+1).replace("_", " ");
+        int total_points = playerPoints.getOrDefault(event.getPlayer().getName() + "-" + event.getPlayer().getUniqueId(), 0) + sum_points;
 
+        playerPoints.put(event.getPlayer().getName() + "-" + event.getPlayer().getUniqueId(), total_points);
 
-        //pone todas las palabras con la primera letra en mayusculas
-        for (int i = 0; i < cadena_2.length(); i++){
-
-            if (i == 0){
-                cadena_3 += Character.toString(cadena_2.charAt(i)).toUpperCase();
-            } else if (cadena_2.charAt(i-1) == ' '){
-                cadena_3 += Character.toString(cadena_2.charAt(i)).toUpperCase();
-            } else {
-                cadena_3 += Character.toString(cadena_2.charAt(i));
-            }
-
-        }
-
-        return cadena_3;
-
+        savePoints();
     }
+
+
+
+
+
+
+
 
     //al hacerse un achievement
     @EventHandler
     public void onAdvancementDone(PlayerAdvancementDoneEvent event) {
+
         Player player = event.getPlayer();
+
         String playerName = player.getName();
 
+        int sum_points = logros.achievementDone(event);
 
-        Advancement advancement = event.getAdvancement();
-        String advancementName = advancement.getKey().getKey();
-        AdvancementProgress progress = player.getAdvancementProgress(advancement);
-        //si el achievement esta hecho
-        if (progress.isDone()) {
-            //si el achievement es de una de estas categorias
-            if (advancementName.startsWith("adventure") || advancementName.startsWith("story") || advancementName.startsWith("minecraft") || advancementName.startsWith("nether") || advancementName.startsWith("end") || advancementName.startsWith("husbandry") ) {
+        if (sum_points != 0) {
+            int newPoints = playerPoints.getOrDefault(playerName + "-" + player.getUniqueId(), 0) + sum_points;
+            playerPoints.put(playerName + "-" + player.getUniqueId(), newPoints);
 
-                //suma puntos
-                int sum_points = getSumPoints(advancementName);
+            savePoints();
 
-                int newPoints = playerPoints.getOrDefault(playerName, 0) + sum_points;
-                playerPoints.put(playerName, newPoints);
-
-                savePoints();
-
-                player.sendMessage("Has conseguido un logro! [" + ChatColor.AQUA + remodelateAchievement(advancementName) + ChatColor.WHITE + "] por " + ChatColor.YELLOW + sum_points + ChatColor.WHITE + " puntos, Puntos Totales : " + ChatColor.YELLOW + newPoints + ChatColor.WHITE);
-            }
+            player.sendMessage("Has conseguido un logro! [" + ChatColor.AQUA + logros.remodelateAchievement(event.getAdvancement().getKey().getKey()) + ChatColor.WHITE + "] por " + ChatColor.YELLOW + sum_points + ChatColor.WHITE + " puntos, Puntos Totales : " + ChatColor.YELLOW + newPoints + ChatColor.WHITE);
 
         }
     }
