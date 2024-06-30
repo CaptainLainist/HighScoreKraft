@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="30"> <!-- Recarga la página cada 10 segundos -->
+    <title>Tabla de Datos</title>
+    <style>
+        /* Define @font-face para la fuente Minecraft */
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('/static/Minecraft-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body{
+            background-color: rgb(145, 106, 75);
+            background-image: url("/static/wallpaper.jpg");
+            background-size: cover;
+            font-family: 'Minecraft', Arial, sans-serif;
+        }
+        table {
+            background-color: rgb(51, 0, 0);
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 18px;
+            text-align: left;
+        }
+        th, td {
+            color: rgb(0, 255, 0);
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .centrado {
+            width: 50%; /* El ancho que prefieras */
+            margin: auto;
+        }
+        img {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="centrado">
+        <h1>Tabla de Puntuación</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Skin</th>
+                    <th>Nombre</th>
+                    <th>Puntuación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in datos %}
+                <tr>
+                    <td><img src="{{ url_for('static', filename=fila.skin) }}"></td>
+                    <td>{{ fila.nombre }}</td>
+                    <td>{{ fila.puntuacion }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

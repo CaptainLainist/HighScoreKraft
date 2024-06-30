@@ -10,6 +10,10 @@ commands:
     description: Dar o quitar puntos
     usage: /darpuntos <jugador> <puntos>
     permission: logros_puntuacion.admin
+  verpuntos:
+    description: ver puntos
+    usage: /verpuntos <jugador>
+    permission: logros_puntuacion.admin
   setpuntos:
     description: Imponer numero de puntos
     usage: /setpuntos <jugador> <puntos>

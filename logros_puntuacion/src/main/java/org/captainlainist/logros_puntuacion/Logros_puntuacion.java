@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 public final class Logros_puntuacion extends JavaPlugin implements Listener, CommandExecutor {
 
+
     Blocks blocks = new Blocks();
 
 
@@ -42,6 +43,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
     Achievements logros = new Achievements();
 
+    DescargaCaras dc = new DescargaCaras();
 
 
     //Mapa con los usuarios (por nombre) y sus puntos
@@ -67,19 +69,23 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     public void onEnable() {
 
 
-
         //comandos
         getServer().getPluginManager().registerEvents(this, this);
         getCommand("puntos").setExecutor(this);
-        this.getCommand("darpuntos").setExecutor(this);
-        this.getCommand("setpuntos").setExecutor(this);
+        getCommand("darpuntos").setExecutor(this);
+        getCommand("setpuntos").setExecutor(this);
+        getCommand("verpuntos").setExecutor(this);
 
-
+        //crear archivos
         blocks.createFile(getDataFolder());
 
         enemies.createFile(getDataFolder());
 
+
+
         getLogger().info("Logros_Puntuacion se ha habilitado");
+
+
 
     }
 
@@ -121,11 +127,24 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     //cuando el jugador se une
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+
+
         Player player = event.getPlayer();
 
-        String name = player.getName();
+        //crear archivo de puntos
+        crearArchivoPuntos(player);
 
-        String completeName = name + "-" + player.getUniqueId();
+        //Descargar cara
+        dc.descargarCara(player);
+
+    }
+
+
+    public void crearArchivoPuntos(Player player){
+
+
+
+        String completeName = player.getName() + "-" + player.getUniqueId();
         // inicializa los puntos a 75 de todos los jugadores
         playerPoints.putIfAbsent(completeName, 75);
 
@@ -146,9 +165,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
         pointsConfig = YamlConfiguration.loadConfiguration(pointsFile);
         loadPoints();
-
     }
-
 
 
     //lista de comandos
@@ -241,7 +258,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         }
 
         Player targetPlayer = Bukkit.getPlayer(args[0]);
-        if (targetPlayer == null || !targetPlayer.isOnline()) {
+        if (targetPlayer == null) {
             sender.sendMessage("El jugador especificado no está en línea.");
             return true;
         }
@@ -271,7 +288,37 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
         return true;
 
-    }
+    }  else if (cmd.getName().toLowerCase().startsWith("verpuntos")){
+
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Este comando solo puede ser ejecutado por un jugador.");
+                return true;
+            }
+
+            if (!sender.hasPermission("logros_puntuacion.admin")) {
+                sender.sendMessage("No tienes permisos para ejecutar este comando.");
+                return true;
+            }
+
+            if (args.length < 1) {
+                sender.sendMessage("Uso incorrecto: /verpuntos <jugador>");
+                return true;
+            }
+
+            Player targetPlayer = Bukkit.getPlayer(args[0]);
+            if (targetPlayer == null) {
+                sender.sendMessage("El jugador especificado no está en línea.");
+                return true;
+            }
+
+
+            int puntos = playerPoints.getOrDefault(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), 0);
+
+            sender.sendMessage("Los puntos del jugador " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + " son " + ChatColor.YELLOW + puntos);
+
+            return true;
+
+        }
         return false;
     }
 
