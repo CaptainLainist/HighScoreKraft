@@ -25,10 +25,12 @@ public class Enemies {
         }
     }
 
+    //si es del spawner
     public static boolean isFromSpawner(Entity entity) {
         return spawnerEntities.remove(entity.getUniqueId());
     }
 
+    //obtener puntos por entidad
     private int getPointsForEntity(EntityType entityType) {
         switch (entityType) {
             case BLAZE:
@@ -106,6 +108,7 @@ public class Enemies {
         }
     }
 
+    //guardar mobs de spawner en el archivo
     public void saveSpawnerEntities() {
         spawnerConfig.set("spawnerEntities", spawnerEntities.stream().map(UUID::toString).toList());
 
@@ -116,6 +119,7 @@ public class Enemies {
         }
     }
 
+    //cargar mobs de spawner
     public void loadSpawnerEntities() {
         spawnerEntities.clear();
         if (spawnerConfig.contains("spawnerEntities")) {
@@ -125,6 +129,7 @@ public class Enemies {
         }
     }
 
+    //crear el archivo
     public void createFile(File ruta){
         //crear y cargar archivo de spawner mobs
         spawnerFile = new File(ruta, "spawner_entities.yml");
@@ -140,6 +145,7 @@ public class Enemies {
 
     }
 
+    //al morir la entidad
     public int entityDeath(EntityDeathEvent event){
 
         //si la criatura es de un spawner

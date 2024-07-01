@@ -36,6 +36,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 public final class Logros_puntuacion extends JavaPlugin implements Listener, CommandExecutor {
 
 
+    //clases usadas
     Blocks blocks = new Blocks();
 
 
@@ -53,10 +54,13 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     private File pointsFile;
     private FileConfiguration pointsConfig;
 
+    //al poner bloques
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         blocks.blockPlaced(event);
     }
+
+    //al spawnear algun mob
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         enemies.creatureSpawn(event);
@@ -97,10 +101,6 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         getLogger().info("Logros_Puntuacion se ha deshabilitado");
     }
 
-
-    //obtener puntos por enemigo
-
-
     //sumar puntos al matar mobs
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
@@ -140,6 +140,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     }
 
 
+    //crear archivo de puntos
     public void crearArchivoPuntos(Player player){
 
 
@@ -287,7 +288,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         savePoints();
 
         return true;
-
+    //para ver los puntos
     }  else if (cmd.getName().toLowerCase().startsWith("verpuntos")){
 
             if (!(sender instanceof Player)) {
@@ -321,10 +322,6 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         }
         return false;
     }
-
-
-
-    //obtener que puntos deberia sumar dependiendo del achievement
 
 
     //cargar puntos del archivo

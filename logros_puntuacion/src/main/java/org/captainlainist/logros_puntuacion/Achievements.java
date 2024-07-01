@@ -43,6 +43,7 @@ public class Achievements {
 
     }
 
+    //obtener achievement points
     private int getAchievementPoints(String achievement) {
         int points;
 
@@ -74,31 +75,31 @@ public class Achievements {
             case "story/enchant_item":
             case "nether/obtain_crying_obsidian":
             case "nether/netherite_armor":
-                points = 80;
+                points = 1500;
                 break;
 
             case "nether/get_wither_skull":
-                points = 90;
+                points = 1000;
                 break;
 
             case "story/cure_zombie_villager":
             case "story/enter_the_end":
             case "nether/summon_wither":
-                points = 100;
+                points = 1200;
                 break;
 
             case "end/kill_dragon":
             case "end/dragon_egg":
             case "end/enter_end_gateway":
             case "end/respawn_dragon":
-                points = 150;
+                points = 2000;
                 break;
 
             case "adventure/voluntary_exile":
             case "adventure/kill_all_mobs":
             case "adventure/adventuring_time":
             case "adventure/hero_of_the_village":
-                points = 120;
+                points = 1300;
                 break;
 
             case "husbandry/bred_all_animals":
@@ -109,7 +110,7 @@ public class Achievements {
 
             case "nether/all_potions":
             case "nether/all_effects":
-                points = 200;
+                points = 920;
                 break;
 
             default:
@@ -120,6 +121,7 @@ public class Achievements {
         return points;
     }
 
+    //cuando se hace el achievement
     public int achievementDone(PlayerAdvancementDoneEvent event){
         Player player = event.getPlayer();
 

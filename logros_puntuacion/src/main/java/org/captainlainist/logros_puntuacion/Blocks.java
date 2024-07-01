@@ -44,11 +44,13 @@ public class Blocks {
     }
 
 
+    //cargar placed blocks
     public void loadPlacedBlocks() {
         placedBlocks.clear();
         placedBlocks.addAll(placedBlocksConfig.getStringList("placedBlocks"));
     }
 
+    //guardar placed blocks
     public void savePlacedBlocks() {
         placedBlocksConfig.set("placedBlocks", new ArrayList<>(placedBlocks));
         try {
@@ -58,6 +60,7 @@ public class Blocks {
         }
     }
 
+    //crear archivo
     public void createFile(File file_ruta){
         //crear y cargar archivo de placeBlocks
         placedBlocksFile = new File(file_ruta, "placed_blocks.yml");
@@ -75,6 +78,7 @@ public class Blocks {
 
     }
 
+    //cuando se rompe el bloque
     public int blockBreak(BlockBreakEvent event) {
 
         Player player = event.getPlayer();

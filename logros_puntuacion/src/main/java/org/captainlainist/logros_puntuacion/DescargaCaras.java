@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.net.URL;
 public class DescargaCaras {
 
+    //obtener URL de la skin
     private String getSkinURL(UUID uuid) throws Exception {
         try {
             String url = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuid.toString().replace("-", "");
@@ -45,12 +46,14 @@ public class DescargaCaras {
         }
     }
 
+    //descargar la skin
     private BufferedImage downloadSkin(String skinURL) throws Exception {
         URL url = new URL(skinURL);
         BufferedImage skin = ImageIO.read(url);
         return skin;
     }
 
+    //obtener la cara de la skin
     private BufferedImage getFace(BufferedImage skin) {
         // Las coordenadas de la cara en la skin
         int faceX = 8;
@@ -63,11 +66,9 @@ public class DescargaCaras {
         return face;
     }
 
-    public boolean isPirateAccount(Player player) {
-        // Verifica si el jugador está en modo offline (no autenticado con Mojang)
-        return !player.isOnline();
-    }
 
+
+    //descargar la cara
     public void descargarCara(Player player){
 
         String path = "server_web/static/caras_skins/" + player.getName() + "-" + player.getUniqueId() + ".png";
@@ -84,11 +85,13 @@ public class DescargaCaras {
         if (!file_abrir.exists()) {
             try {
                 String url = getSkinURL(player.getUniqueId());
+                //si la cuenta no es pirata
                 if (!url.equals("pirate")) {
                     BufferedImage skin = downloadSkin(url);
                     BufferedImage cara = getFace(skin);
                     File file = new File(path);
                     ImageIO.write(cara, "png", file);
+                    //si si es pirata
                 } else {
                     Path sourcePath = Paths.get("server_web/static/caras_skins/steve-face.png");
                     Path targetPath = Paths.get(path);
