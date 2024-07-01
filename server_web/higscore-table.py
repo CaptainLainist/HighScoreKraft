@@ -22,4 +22,4 @@ def home():
     return render_template('highscore-table.html', datos=datos)
 
 if __name__ == '__main__':
-    app.run(port=1234)
+    app.run(host="0.0.0.0", port=1234)
