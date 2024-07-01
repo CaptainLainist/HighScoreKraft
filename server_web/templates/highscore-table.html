@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="30"> <!-- Recarga la página cada 10 segundos -->
-    <title>Tabla de Datos</title>
+    <title>Tabla de Puntuación</title>
     <style>
         /* Define @font-face para la fuente Minecraft */
         @font-face {
@@ -32,9 +32,6 @@
             padding: 12px;
             border-bottom: 1px solid #ddd;
         }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
         .centrado {
             width: 50%; /* El ancho que prefieras */
             margin: auto;
@@ -51,7 +48,7 @@
         <h1>Tabla de Puntuación</h1>
         <table>
             <thead>
-                <tr>
+                <tr><th>Numero</th>
                     <th>Skin</th>
                     <th>Nombre</th>
                     <th>Puntuación</th>
@@ -60,6 +57,7 @@
             <tbody>
                 {% for fila in datos %}
                 <tr>
+                    <td>{{ loop.index }}. </td>
                     <td><img src="{{ url_for('static', filename=fila.skin) }}"></td>
                     <td>{{ fila.nombre }}</td>
                     <td>{{ fila.puntuacion }}</td>
