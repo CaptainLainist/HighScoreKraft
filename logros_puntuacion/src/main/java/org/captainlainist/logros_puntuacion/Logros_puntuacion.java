@@ -134,9 +134,20 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         //crear archivo de puntos
         crearArchivoPuntos(player);
 
+        //anyadir nuevo usuario al archivo de puntos
+        anyadirNuevoUsuario(player);
+
         //Descargar cara
         dc.descargarCara(player);
 
+    }
+
+    //guardar usuario en archivo
+    public void anyadirNuevoUsuario(Player player){
+        // Crear archivo de puntos si no existe
+        if (!pointsConfig.contains(player.getName() + "-" + player.getUniqueId())) {
+            savePoints();  // Asegúrate de guardar los cambios en el archivo de configuración
+        }
     }
 
 
