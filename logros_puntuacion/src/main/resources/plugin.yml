@@ -3,20 +3,20 @@ version: '${project.version}'
 main: org.captainlainist.logros_puntuacion.Logros_puntuacion
 api-version: '1.20'
 commands:
-  puntos:
-    description: Mira tus puntos
-    usage: /puntos
-  darpuntos:
-    description: Dar o quitar puntos
-    usage: /darpuntos <jugador> <puntos>
+  score:
+    description: See your score
+    usage: /score
+  givescore:
+    description: Give or take away score
+    usage: /givescore <player> <score>
     permission: logros_puntuacion.admin
-  verpuntos:
-    description: ver puntos
-    usage: /verpuntos <jugador>
+  seescore:
+    description: See other players score
+    usage: /seescore <player>
     permission: logros_puntuacion.admin
-  setpuntos:
-    description: Imponer numero de puntos
-    usage: /setpuntos <jugador> <puntos>
+  setscore:
+    description: Set other players score
+    usage: /setscore <player> <score>
     permission: logros_puntuacion.admin
 permissions:
   logros_puntuacion.admin:

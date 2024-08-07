@@ -75,10 +75,10 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
         //comandos
         getServer().getPluginManager().registerEvents(this, this);
-        getCommand("puntos").setExecutor(this);
-        getCommand("darpuntos").setExecutor(this);
-        getCommand("setpuntos").setExecutor(this);
-        getCommand("verpuntos").setExecutor(this);
+        getCommand("score").setExecutor(this);
+        getCommand("givescore").setExecutor(this);
+        getCommand("setscore").setExecutor(this);
+        getCommand("seescore").setExecutor(this);
 
         //crear archivos
         blocks.createFile(getDataFolder());
@@ -87,7 +87,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
 
 
-        getLogger().info("Logros_Puntuacion se ha habilitado");
+        getLogger().info("HighScoreKraft has been enabled");
 
 
 
@@ -98,7 +98,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     public void onDisable() {
         blocks.savePlacedBlocks();
         enemies.saveSpawnerEntities();
-        getLogger().info("Logros_Puntuacion se ha deshabilitado");
+        getLogger().info("HighScoreKraft has been disabled");
     }
 
     //sumar puntos al matar mobs
@@ -116,7 +116,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             int newPoints = playerPoints.getOrDefault(player.getName() + "-" + player.getUniqueId(), 0) + sum_points;
             playerPoints.put(player.getName() + "-" + player.getUniqueId(), newPoints);
             if (sum_points != 0) {
-                player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " puntos por ese " + ChatColor.AQUA + event.getEntity().getName());
+                player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " points for this " + ChatColor.AQUA + event.getEntity().getName());
             }
             savePoints();
         }
@@ -167,10 +167,10 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             pointsFile.getParentFile().mkdirs();
             try {
                 pointsFile.createNewFile();
-                getLogger().info("Archivo de puntos creado correctamente");
+                getLogger().info("Score file created");
             } catch (IOException e) {
 
-                getLogger().info("ERROR: Archivo de puntos no se pudo crear");
+                getLogger().info("ERROR: Score file couldn't be created");
                 e.printStackTrace();
             }
         }
@@ -184,37 +184,37 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         //puntos, muestra los puntos
-        if (cmd.getName().equalsIgnoreCase("puntos")) {
+        if (cmd.getName().equalsIgnoreCase("score")) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 String name = player.getName();
                 int points = playerPoints.getOrDefault(name + "-" + player.getUniqueId(), 0);
-                player.sendMessage("Tus puntos: " + ChatColor.YELLOW + points);
+                player.sendMessage("Your score: " + ChatColor.YELLOW + points);
             } else {
-                sender.sendMessage("Este comando solo puede ser usado por jugadores.");
+                sender.sendMessage("This command can only be used by players.");
             }
             return true;
             //darpuntos, da o quita puntos
-        } else if (cmd.getName().toLowerCase().startsWith("darpuntos")){
+        } else if (cmd.getName().toLowerCase().startsWith("givescore")){
 
             if (!(sender instanceof Player)) {
-                sender.sendMessage("Este comando solo puede ser ejecutado por un jugador.");
+                sender.sendMessage("This command can only be used by players.");
                 return true;
             }
 
             if (!sender.hasPermission("logros_puntuacion.admin")) {
-                sender.sendMessage("No tienes permisos para ejecutar este comando.");
+                sender.sendMessage("You lack of permission to execute this command.");
                 return true;
             }
 
             if (args.length < 2) {
-                sender.sendMessage("Uso incorrecto: /darpuntos <jugador> <puntos>");
+                sender.sendMessage("Incorrect use: /givscore <player> <score>");
                 return true;
             }
 
             Player targetPlayer = Bukkit.getPlayer(args[0]);
             if (targetPlayer == null || !targetPlayer.isOnline()) {
-                sender.sendMessage("El jugador especificado no está en línea.");
+                sender.sendMessage("The specified player isn't online.");
                 return true;
             }
 
@@ -222,7 +222,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             try {
                 pointsToAdd = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
-                sender.sendMessage("La cantidad de puntos debe ser un número válido.");
+                sender.sendMessage("The score must be a valid number.");
                 return true;
             }
 
@@ -233,18 +233,18 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             playerPoints.put(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), puntosTotales);
 
             if (pointsToAdd >= 0) {
-                sender.sendMessage("Puntos añadidos al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd + ChatColor.WHITE + ". Puntos Totales: " + ChatColor.YELLOW + puntosTotales);
+                sender.sendMessage("Score added to user " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd + ChatColor.WHITE + ". Total Score: " + ChatColor.YELLOW + puntosTotales);
             } else {
                 int puntosPos = pointsToAdd * -1;
-                sender.sendMessage("Puntos quitados del usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.RED + puntosPos + ChatColor.WHITE + ". Puntos Totales: " + ChatColor.YELLOW + puntosTotales);
+                sender.sendMessage("Score taken away from user " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.RED + puntosPos + ChatColor.WHITE + ". Total Score: " + ChatColor.YELLOW + puntosTotales);
             }
             if (pointsToAdd > 0) {
-                targetPlayer.sendMessage(ChatColor.GREEN + "Puntos añadidos al usuario " + targetPlayer.getName() + ": " + pointsToAdd + ". Puntos Totales: " + puntosTotales);
+                targetPlayer.sendMessage(ChatColor.GREEN + "Score added to user " + targetPlayer.getName() + ": " + pointsToAdd + ". Total Score: " + puntosTotales);
             }  else if (pointsToAdd < 0){
                 int puntosPos = pointsToAdd * -1;
-                targetPlayer.sendMessage(ChatColor.RED + "Puntos quitados del usuario " + targetPlayer.getName() + ": " + puntosPos + ". Puntos Totales: " + puntosTotales);
+                targetPlayer.sendMessage(ChatColor.RED + "Score taken away from user " + targetPlayer.getName() + ": " + puntosPos + ". Total Score: " + puntosTotales);
             } else {
-                targetPlayer.sendMessage("Puntos añadidos al usuario " + targetPlayer.getName() + ": " + pointsToAdd + ". Puntos Totales: " + puntosTotales);
+                targetPlayer.sendMessage("Score added to user " + targetPlayer.getName() + ": " + pointsToAdd + ". Total Score: " + puntosTotales);
 
             }
             savePoints();
@@ -252,26 +252,26 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
             return true;
 
             //setpuntos, hace que el usuario tenga ciertos puntos
-        } else if (cmd.getName().toLowerCase().startsWith("setpuntos")){
+        } else if (cmd.getName().toLowerCase().startsWith("setscore")){
 
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Este comando solo puede ser ejecutado por un jugador.");
+            sender.sendMessage("This command can only be used by players.");
             return true;
         }
 
         if (!sender.hasPermission("logros_puntuacion.admin")) {
-            sender.sendMessage("No tienes permisos para ejecutar este comando.");
+            sender.sendMessage("You lack of permission to execute this command.");
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage("Uso incorrecto: /setpuntos <jugador> <puntos>");
+            sender.sendMessage("Incorrect use: /setscore <player> <score>");
             return true;
         }
 
         Player targetPlayer = Bukkit.getPlayer(args[0]);
         if (targetPlayer == null) {
-            sender.sendMessage("El jugador especificado no está en línea.");
+            sender.sendMessage("The specified player isn't online.");
             return true;
         }
 
@@ -279,7 +279,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         try {
             pointsToAdd = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            sender.sendMessage("La cantidad de puntos debe ser un número válido.");
+            sender.sendMessage("The score must be a valid number.");
             return true;
         }
 
@@ -288,45 +288,45 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
         playerPoints.put(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), pointsToAdd);
 
 
-        sender.sendMessage("Puntos aplicados al usuario " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd);
+        sender.sendMessage("Score set to user " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + ": " + ChatColor.YELLOW + pointsToAdd);
 
         if (puntosAnteriores < pointsToAdd) {
-            targetPlayer.sendMessage(ChatColor.GREEN + "Puntos aplicados al usuario " + targetPlayer.getName() + ": " + pointsToAdd);
+            targetPlayer.sendMessage(ChatColor.GREEN + "Score set to user " + targetPlayer.getName() + ": " + pointsToAdd);
         } else if (puntosAnteriores > pointsToAdd){
-            targetPlayer.sendMessage(ChatColor.RED + "Puntos aplicados al usuario " + targetPlayer.getName() + ": " + pointsToAdd);
+            targetPlayer.sendMessage(ChatColor.RED + "Score set to user " + targetPlayer.getName() + ": " + pointsToAdd);
         }
 
         savePoints();
 
         return true;
     //para ver los puntos
-    }  else if (cmd.getName().toLowerCase().startsWith("verpuntos")){
+    }  else if (cmd.getName().toLowerCase().startsWith("seescore")){
 
             if (!(sender instanceof Player)) {
-                sender.sendMessage("Este comando solo puede ser ejecutado por un jugador.");
+                sender.sendMessage("This command can only be used by players");
                 return true;
             }
 
             if (!sender.hasPermission("logros_puntuacion.admin")) {
-                sender.sendMessage("No tienes permisos para ejecutar este comando.");
+                sender.sendMessage("You lack of permission to execute this command");
                 return true;
             }
 
             if (args.length < 1) {
-                sender.sendMessage("Uso incorrecto: /verpuntos <jugador>");
+                sender.sendMessage("Incorrect use: /seescore <player>");
                 return true;
             }
 
             Player targetPlayer = Bukkit.getPlayer(args[0]);
             if (targetPlayer == null) {
-                sender.sendMessage("El jugador especificado no está en línea.");
+                sender.sendMessage("The specified player isn't online.");
                 return true;
             }
 
 
             int puntos = playerPoints.getOrDefault(targetPlayer.getName() + "-" + targetPlayer.getUniqueId(), 0);
 
-            sender.sendMessage("Los puntos del jugador " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + " son " + ChatColor.YELLOW + puntos);
+            sender.sendMessage("The player " + ChatColor.AQUA + targetPlayer.getName() + ChatColor.WHITE + "'s score is " + ChatColor.YELLOW + puntos);
 
             return true;
 
@@ -399,7 +399,7 @@ public final class Logros_puntuacion extends JavaPlugin implements Listener, Com
 
             savePoints();
 
-            player.sendMessage("Has conseguido un logro! [" + ChatColor.AQUA + logros.remodelateAchievement(event.getAdvancement().getKey().getKey()) + ChatColor.WHITE + "] por " + ChatColor.YELLOW + sum_points + ChatColor.WHITE + " puntos, Puntos Totales : " + ChatColor.YELLOW + newPoints + ChatColor.WHITE);
+            player.sendMessage("You obtained an Advancement! [" + ChatColor.AQUA + logros.remodelateAchievement(event.getAdvancement().getKey().getKey()) + ChatColor.WHITE + "] for " + ChatColor.YELLOW + sum_points + ChatColor.WHITE + " points, Total Score: " + ChatColor.YELLOW + newPoints + ChatColor.WHITE);
 
         }
     }

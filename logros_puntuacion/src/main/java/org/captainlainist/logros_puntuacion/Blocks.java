@@ -132,7 +132,7 @@ public class Blocks {
                 break;
         }
         if (sum_points != 0) {
-            player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " puntos!");
+            player.sendMessage(ChatColor.YELLOW + "+" + sum_points + ChatColor.WHITE + " score!");
 
 
 
