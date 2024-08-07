@@ -2,7 +2,7 @@
 
 High score Kraft is a spigot minecraft plugin that handles with a high score system in minecraft 1.20.6. It also comes with a python script that acts as a flask server showing the High score table
 
-![](https://raw.githubusercontent.com/CaptainLainist/logros_puntuacion/main/table.png)
+![](https://raw.githubusercontent.com/CaptainLainist/HighScoreKraft/main/table.png)
 
 ## instalation
 
