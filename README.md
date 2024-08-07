@@ -17,3 +17,26 @@ pip install -r requirements.txt
 ## Warning
 
 Remember to close the server with the stop command and not simply closing the terminal, or it would cause some bugs on the plugin
+
+
+## Commands
+
+```bash
+Player commands:
+/score
+
+see your own score
+
+Admin commands:
+/seescore <player>
+
+see other player's score
+
+/setscore <player> <score>
+
+set other player's score
+
+/givescore <player> <score>
+
+give or take away(can be negative) score from antoher player
+```
